@@ -1,0 +1,8 @@
+torch
+torchvision
+timm
+pandas
+numpy
+scikit-learn
+openpyxl
+iterative-stratification

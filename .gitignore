@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.Python
+*.venv
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Data and model files (large)
+*.pth
+*.pt
+*.ckpt
+*.npy
+*.pkl
+*.pickle
+
+# Dataset
+cattle diseases.v2i.multiclass/
+balanced_splits/
+data/balanced_splits/
+
+# Results (unless you want to track them)
+results/*.npy
+results/*.json
+results/models/*.pth
+results/thresholds/*.npy
+results/metrics/*.npy
+results/predictions/*.npy
+results/summaries/*.json
+
+# OS
+.DS_Store
+Thumbs.db
+.env
+.env.local

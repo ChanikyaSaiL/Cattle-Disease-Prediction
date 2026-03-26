@@ -1,0 +1,34 @@
+📊 Evaluation Metrics
+============================================================
+Subset Accuracy        : 0.6988
+F1 Micro              : 0.8298
+F1 Macro (All)        : 0.5363
+F1 Macro (Active)     : 0.5363
+Hamming Loss          : 0.0826
+ROC-AUC (Macro)       : 0.9106
+PR-AUC (Macro)        : 0.8553
+
+📌 Per-Class Metrics:
+Class 0 → Acc: 0.9518, F1: 0.3333
+Class 1 → Acc: 0.9518, F1: 0.3333
+Class 2 → Acc: 0.8675, F1: 0.1538
+Class 3 → Acc: 0.8795, F1: 0.1667
+Class 4 → Acc: 0.9157, F1: 0.9114
+Class 5 → Acc: 0.9398, F1: 0.9398
+Class 6 → Acc: 0.9157, F1: 0.9157
+
+📌 Classification Report:
+              precision    recall  f1-score   support
+
+           0       0.25      0.50      0.33         2
+           1       0.20      1.00      0.33         1
+           2       0.09      0.50      0.15         2
+           3       0.09      1.00      0.17         1
+           4       0.95      0.88      0.91        41
+           5       0.91      0.97      0.94        40
+           6       0.88      0.95      0.92        40
+
+   micro avg       0.75      0.92      0.83       127
+   macro avg       0.48      0.83      0.54       127
+   weighted avg       0.88      0.92      0.89       127
+  samples avg       0.84      0.91      0.86       127
