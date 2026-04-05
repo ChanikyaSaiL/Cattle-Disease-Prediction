@@ -2,21 +2,22 @@ import torch
 import torch.nn as nn
 import torchvision.models as models
 
+
 # =========================
 # EfficientNet Backbone
 # =========================
 class EfficientNetBackbone(nn.Module):
     def __init__(self):
         super().__init__()
-        self.model = models.efficientnet_b0(pretrained=True)
-        self.model.classifier = nn.Identity()  # remove final FC
+        self.model = models.efficientnet_b0(weights="DEFAULT")
+        self.model.classifier = nn.Identity()
 
     def forward(self, x):
-        return self.model(x)   # output: (B, 1280)
+        return self.model(x)   # (B, 1280)
 
 
 # =========================
-# Patch CNN (Local Features)
+# Patch CNN
 # =========================
 class PatchCNN(nn.Module):
     def __init__(self):
@@ -45,84 +46,82 @@ class PatchCNN(nn.Module):
 
 
 # =========================
-# Attention Fusion
+# Class-Aware Fusion
 # =========================
-class AttentionFusion(nn.Module):
-    def __init__(self, dim1, dim2):
+class ClassAwareFusion(nn.Module):
+    def __init__(self, eff_dim, patch_dim, num_classes):
         super().__init__()
-        
-        self.fusion_dim = dim1  # Use dim1 as the common dimension
 
-        # Project dim2 to dim1
-        self.proj = nn.Linear(dim2, dim1)
+        self.num_classes = num_classes
+        self.proj = nn.Linear(patch_dim, eff_dim)
 
-        # Attention weight network
-        self.fc = nn.Sequential(
-            nn.Linear(dim1 + dim1, 256),
+        self.attn = nn.Sequential(
+            nn.Linear(eff_dim * 2, 256),
             nn.ReLU(),
-            nn.Linear(256, 2),
-            nn.Softmax(dim=1)
+            nn.Linear(256, num_classes * 2)
         )
 
     def forward(self, f1, f2):
-        # Project f2 to match f1's dimension
-        f2_proj = self.proj(f2)
-        
-        # Compute attention weights
-        weights = self.fc(torch.cat([f1, f2_proj], dim=1))
-        w1 = weights[:, 0].unsqueeze(1)
-        w2 = weights[:, 1].unsqueeze(1)
 
-        # Fuse using attention weights
-        return w1 * f1 + w2 * f2_proj
+        f2_proj = self.proj(f2)  # (B, 1280)
+
+        B = f1.size(0)
+
+        combined = torch.cat([f1, f2_proj], dim=1)
+        weights = self.attn(combined)
+
+        weights = weights.view(B, self.num_classes, 2)
+        weights = torch.softmax(weights, dim=2)
+
+        w1 = weights[:, :, 0].unsqueeze(-1)
+        w2 = weights[:, :, 1].unsqueeze(-1)
+
+        f1_exp = f1.unsqueeze(1)
+        f2_exp = f2_proj.unsqueeze(1)
+
+        fused = w1 * f1_exp + w2 * f2_exp  # (B, num_classes, 1280)
+
+        return fused
 
 
 # =========================
-# Dual Model (Flexible)
+# FINAL MODEL
 # =========================
 class DualModel(nn.Module):
     def __init__(self, num_classes, mode="fusion"):
         super().__init__()
 
         self.mode = mode
+        self.num_classes = num_classes
 
-        # Backbones
         self.eff = EfficientNetBackbone()
         self.patch = PatchCNN()
 
-        # Feature dimensions
         self.eff_dim = 1280
         self.patch_dim = 128
 
-        # BatchNorm (important)
         self.bn1 = nn.BatchNorm1d(self.eff_dim)
         self.bn2 = nn.BatchNorm1d(self.patch_dim)
 
-        # Attention fusion
-        self.attn = AttentionFusion(self.eff_dim, self.patch_dim)
+        self.fusion = ClassAwareFusion(self.eff_dim, self.patch_dim, num_classes)
 
-        # Classifiers based on mode
-        if self.mode == "eff":
+        if mode == "eff":
             self.fc = nn.Linear(self.eff_dim, num_classes)
 
-        elif self.mode == "patch":
+        elif mode == "patch":
             self.fc = nn.Linear(self.patch_dim, num_classes)
 
-        elif self.mode == "fusion":
-            self.fc = nn.Linear(self.eff_dim, num_classes)
+        elif mode == "fusion":
+            self.fc = nn.Linear(self.eff_dim, 1)
 
         else:
             raise ValueError("Mode must be 'eff', 'patch', or 'fusion'")
 
     def forward(self, x):
 
-        # Extract features
-        f1 = self.bn1(self.eff(x))     # (B, 1280)
-        f2 = self.bn2(self.patch(x))   # (B, 128)
+        f1 = self.bn1(self.eff(x))
+        f2 = self.bn2(self.patch(x))
 
-        # =========================
-        # Mode Handling
-        # =========================
         if self.mode == "eff":
             return self.fc(f1)
 
@@ -130,5 +129,11 @@ class DualModel(nn.Module):
             return self.fc(f2)
 
         elif self.mode == "fusion":
-            fused = self.attn(f1, f2)
-            return self.fc(fused)
+            fused = self.fusion(f1, f2)
+
+            # 🔥 CRITICAL: Residual Stabilization
+            fused = 0.7 * f1.unsqueeze(1) + 0.3 * fused
+
+            logits = self.fc(fused).squeeze(-1)
+
+            return logits

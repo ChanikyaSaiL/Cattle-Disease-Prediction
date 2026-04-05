@@ -18,24 +18,24 @@ from utils.augmentations import get_val_transforms
 
 
 def test():
-    print("🔹 Testing Fusion Model")
+    print("🚀 Testing Q1 Fusion Model")
 
     test_ds = CattleDataset(BASE_DIR, TEST_EXCEL, get_val_transforms())
     test_loader = DataLoader(test_ds, batch_size=BATCH_SIZE, shuffle=False)
 
     model = DualModel(NUM_CLASSES, mode="fusion").to(DEVICE)
-    model.load_state_dict(torch.load(FUSION_MODEL_PATH, map_location=DEVICE))
+    model.load_state_dict(torch.load("fusion_q1_model.pth", map_location=DEVICE))
     model.eval()
 
-    thresholds = np.load(FUSION_THRESHOLD_PATH)
-
-    all_probs, all_targets = [], []
+    all_probs = []
+    all_targets = []
 
     with torch.no_grad():
         for x, y in test_loader:
             x = x.to(DEVICE)
 
-            logits = model(x)
+            logits, thresholds = model(x)
+
             probs = torch.sigmoid(logits)
 
             all_probs.append(probs.cpu())
@@ -43,6 +43,9 @@ def test():
 
     all_probs = torch.cat(all_probs).numpy()
     all_targets = torch.cat(all_targets).numpy()
+
+    # 🔥 USE LEARNED THRESHOLDS
+    thresholds = thresholds.detach().cpu().numpy()
 
     preds = (all_probs > thresholds).astype(int)
 
@@ -112,14 +115,12 @@ def test():
         "pr_auc": float(pr_auc),
     }
 
-    np.save("results/summaries/fusion_results.npy", results)
-    np.save("results/metrics/fusion_per_class_acc.npy", per_class_acc)
-    np.save("results/metrics/fusion_per_class_f1.npy", per_class_f1)
+    np.save("fusion_q1_results.npy", results)
 
-    with open("results/summaries/fusion_results.json", "w") as f:
+    with open("fusion_q1_results.json", "w") as f:
         json.dump(results, f, indent=4)
 
-    print("\n✅ Fusion metrics saved")
+    print("\n✅ Q1 Metrics saved successfully")
 
 
 if __name__ == "__main__":

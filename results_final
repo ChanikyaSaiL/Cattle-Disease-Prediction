@@ -1,0 +1,78 @@
+PS C:\Users\lagadapati\OneDrive\Desktop\Cattle-Disease-Prediction> python test_final.py
+
+🚀 Testing Mode: eff
+
+📊 Results
+==================================================
+Subset Accuracy : 0.9157
+F1 Micro        : 0.9490
+F1 Macro        : 0.7937
+Hamming Loss    : 0.0224
+
+📌 Classification Report:
+              precision    recall  f1-score   support
+
+           0       1.00      0.50      0.67         2
+           1       0.50      1.00      0.67         1
+           2       1.00      0.50      0.67         2
+           3       0.50      1.00      0.67         1
+           4       0.93      0.95      0.94        41
+           5       0.97      0.95      0.96        40
+           6       0.98      1.00      0.99        40
+
+   micro avg       0.95      0.95      0.95       127
+   macro avg       0.84      0.84      0.79       127
+weighted avg       0.95      0.95      0.95       127
+ samples avg       0.95      0.95      0.95       127
+
+
+🚀 Testing Mode: patch
+
+📊 Results
+==================================================
+Subset Accuracy : 0.6024
+F1 Micro        : 0.7450
+F1 Macro        : 0.4674
+Hamming Loss    : 0.1308
+
+📌 Classification Report:
+              precision    recall  f1-score   support
+
+           0       0.10      0.50      0.17         2
+           1       0.07      1.00      0.12         1
+           2       0.12      0.50      0.20         2
+           3       0.12      1.00      0.22         1
+           4       0.82      0.88      0.85        41
+           5       0.84      0.90      0.87        40
+           6       0.81      0.88      0.84        40
+
+   micro avg       0.65      0.87      0.74       127
+   macro avg       0.41      0.81      0.47       127
+weighted avg       0.79      0.87      0.82       127
+ samples avg       0.74      0.87      0.78       127
+
+
+🚀 Testing Mode: fusion
+
+📊 Results
+==================================================
+Subset Accuracy : 0.7108
+F1 Micro        : 0.7731
+F1 Macro        : 0.3515
+Hamming Loss    : 0.0929
+
+📌 Classification Report:
+              precision    recall  f1-score   support
+
+           0       0.00      0.00      0.00         2
+           1       0.00      0.00      0.00         1
+           2       0.00      0.00      0.00         2
+           3       0.00      0.00      0.00         1
+           4       0.87      0.83      0.85        41
+           5       0.91      0.75      0.82        40
+           6       0.90      0.70      0.79        40
+
+   micro avg       0.83      0.72      0.77       127
+   macro avg       0.38      0.33      0.35       127
+weighted avg       0.85      0.72      0.78       127
+ samples avg       0.75      0.76      0.75       127
